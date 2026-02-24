@@ -14,4 +14,22 @@ class Match {
     this.awayScore,
     this.completed = false,
   });
+
+  Map<String, dynamic> toJson() => {
+    'homeTeam': homeTeam.toJson(),
+    'awayTeam': awayTeam.toJson(),
+    'homeScore': homeScore,
+    'awayScore': awayScore,
+    'completed': completed,
+  };
+
+  factory Match.fromJson(Map<String, dynamic> json) {
+    return Match(
+      homeTeam: Team.fromJson(json['homeTeam']),
+      awayTeam: Team.fromJson(json['awayTeam']),
+      homeScore: json['homeScore'],
+      awayScore: json['awayScore'],
+      completed: json['completed'],
+    );
+  }
 }

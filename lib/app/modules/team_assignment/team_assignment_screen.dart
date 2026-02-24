@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:kickoff/app/core/utils/app_colors.dart';
 import 'package:kickoff/app/modules/team_assignment/team_assignment_controller.dart';
-import 'package:kickoff/app/routes/app_pages.dart';
 
 class TeamAssignmentScreen extends GetView<TeamAssignmentController> {
   const TeamAssignmentScreen({Key? key}) : super(key: key);
@@ -64,14 +63,7 @@ class TeamAssignmentScreen extends GetView<TeamAssignmentController> {
             ),
             const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: () {
-                Get.toNamed(Routes.TOURNAMENT_VIEW, arguments: {
-                  'name': controller.tournamentName,
-                  'type': controller.tournamentType,
-                  'format': controller.matchFormat,
-                  'teams': controller.teams
-                });
-              },
+              onPressed: controller.startTournament,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 padding: const EdgeInsets.symmetric(vertical: 16),

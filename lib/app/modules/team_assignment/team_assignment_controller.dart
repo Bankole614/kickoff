@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:kickoff/app/data/models/team_model.dart';
+import 'package:kickoff/app/data/models/tournament_model.dart';
+import 'package:kickoff/app/data/services/storage_service.dart';
+import 'package:kickoff/app/routes/app_pages.dart';
+import 'package:uuid/uuid.dart';
 
 class TeamAssignmentController extends GetxController {
   late String tournamentName;
@@ -9,6 +13,7 @@ class TeamAssignmentController extends GetxController {
   late List<String> players;
 
   final RxList<Team> teams = <Team>[].obs;
+  final StorageService _storageService = Get.find<StorageService>();
 
   @override
   void onInit() {
@@ -67,5 +72,19 @@ class TeamAssignmentController extends GetxController {
         ),
       ],
     );
+  }
+
+  void startTournament() {
+    final tournament = Tournament(
+      id: const Uuid().v4(),
+      name: tournamentName,
+      type: tournamentType,
+      format: matchFormat,
+      teams: teams,
+    );
+
+    _storageService.saveTournament(tournament);
+
+    Get.toNamed(Routes.TOURNAMENT_VIEW, arguments: tournament);
   }
 }

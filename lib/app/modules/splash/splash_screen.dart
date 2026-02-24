@@ -6,7 +6,7 @@ import 'package:kickoff/app/core/utils/app_colors.dart';
 import 'package:kickoff/app/routes/app_pages.dart';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({Key? key}) : super(key: key);
+  const SplashScreen({super.key});
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();

@@ -3,8 +3,13 @@ import 'package:get/get.dart';
 import 'package:kickoff/app/data/models/match_model.dart';
 import 'package:kickoff/app/data/models/standing_model.dart';
 import 'package:kickoff/app/data/models/team_model.dart';
+import 'package:kickoff/app/data/models/tournament_model.dart';
+import 'package:kickoff/app/data/services/storage_service.dart';
 
 class TournamentViewController extends GetxController {
+  late Tournament tournament;
+  final StorageService _storageService = Get.find<StorageService>();
+
   late String tournamentName;
   late String tournamentType;
   late String matchFormat;
@@ -16,14 +21,22 @@ class TournamentViewController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    final args = Get.arguments as Map<String, dynamic>;
-    tournamentName = args['name'];
-    tournamentType = args['type'];
-    matchFormat = args['format'];
-    teams = args['teams'];
+    tournament = Get.arguments as Tournament;
+    
+    tournamentName = tournament.name;
+    tournamentType = tournament.type;
+    matchFormat = tournament.format;
+    teams = tournament.teams;
 
-    if (tournamentType == 'League') {
+    if (tournament.matches.isNotEmpty) {
+      matches.assignAll(tournament.matches);
+    } else if (tournamentType == 'League') {
       generateLeagueFixtures();
+    }
+
+    if (tournament.standings.isNotEmpty) {
+      standings.assignAll(tournament.standings);
+    } else if (tournamentType == 'League') {
       initializeStandings();
     }
   }
@@ -34,17 +47,21 @@ class TournamentViewController extends GetxController {
         matches.add(Match(homeTeam: teams[i], awayTeam: teams[j]));
       }
     }
+    _saveTournamentState();
   }
 
   void initializeStandings() {
     for (var team in teams) {
       standings.add(Standing(team: team));
     }
+    _saveTournamentState();
   }
 
   void updateStandings(Match match) {
-    final homeStanding = standings.firstWhere((s) => s.team == match.homeTeam);
-    final awayStanding = standings.firstWhere((s) => s.team == match.awayTeam);
+    // Logic needs to find the correct standing based on team name, 
+    // because team objects might be different instances if loaded from JSON
+    final homeStanding = standings.firstWhere((s) => s.team.name.value == match.homeTeam.name.value);
+    final awayStanding = standings.firstWhere((s) => s.team.name.value == match.awayTeam.name.value);
 
     homeStanding.played++;
     awayStanding.played++;
@@ -80,6 +97,23 @@ class TournamentViewController extends GetxController {
       }
     });
     standings.refresh();
+    _saveTournamentState();
+  }
+
+  void _saveTournamentState() {
+    // Create a new tournament object with updated matches/standings to save
+    final updatedTournament = Tournament(
+      id: tournament.id,
+      name: tournament.name,
+      type: tournament.type,
+      format: tournament.format,
+      teams: tournament.teams,
+      matches: matches.toList(),
+      standings: standings.toList(),
+      isCompleted: tournament.isCompleted,
+      createdDate: tournament.createdDate,
+    );
+    _storageService.updateTournament(updatedTournament);
   }
 
   void showScoreEntryDialog(Match match) {
