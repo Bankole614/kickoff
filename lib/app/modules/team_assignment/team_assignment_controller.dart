@@ -35,7 +35,7 @@ class TeamAssignmentController extends GetxController {
     for (var i = 0; i < numTeams; i++) {
       final teamPlayers = players.skip(i * teamSize).take(teamSize).toList();
       teams.add(Team(
-        name: 'Team ${String.fromCharCode(65 + i)}',
+        name: 'Team ${i + 1}',
         players: teamPlayers,
       ));
     }

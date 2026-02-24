@@ -13,11 +13,30 @@ class TournamentViewScreen extends GetView<TournamentViewController> {
     return DefaultTabController(
       length: 2,
       child: Scaffold(
+        backgroundColor: AppColors.background,
         appBar: AppBar(
-          title: Text(controller.tournamentName),
+          title: Text(
+            controller.tournamentName,
+            style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+          ),
           backgroundColor: AppColors.primary,
-          bottom: const TabBar(
-            tabs: [
+          elevation: 0,
+          centerTitle: true,
+          iconTheme: const IconThemeData(color: Colors.white),
+          bottom: TabBar(
+            indicatorColor: Colors.white,
+            indicatorWeight: 3,
+            labelStyle: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+            unselectedLabelStyle: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.normal,
+            ),
+            labelColor: Colors.white,
+            unselectedLabelColor: Colors.white.withOpacity(0.7),
+            tabs: const [
               Tab(text: 'Standings'),
               Tab(text: 'Matches'),
             ],
@@ -28,13 +47,33 @@ class TournamentViewScreen extends GetView<TournamentViewController> {
             if (controller.tournamentType == 'League')
               const LeagueTable()
             else
-              const Center(child: Text('Standings not available for this tournament type.')),
+              _buildComingSoon('Standings'),
             if (controller.tournamentType == 'League')
               const MatchList()
             else
-              const Center(child: Text('Matches not available for this tournament type.')),
+              _buildComingSoon('Matches'),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildComingSoon(String feature) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.construction, size: 64, color: Colors.grey[400]),
+          const SizedBox(height: 16),
+          Text(
+            '$feature not available yet\nfor this tournament type.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.grey[600],
+            ),
+          ),
+        ],
       ),
     );
   }

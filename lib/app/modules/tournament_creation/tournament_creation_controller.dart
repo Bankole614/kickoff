@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:kickoff/app/routes/app_pages.dart';
+import 'package:intl/intl.dart';
 
 class TournamentCreationController extends GetxController {
   final TextEditingController tournamentNameController = TextEditingController();
@@ -20,22 +21,22 @@ class TournamentCreationController extends GetxController {
   }
 
   void toPlayerInput() {
-    if (tournamentNameController.text.isNotEmpty) {
-      Get.toNamed(
-        Routes.PLAYER_INPUT,
-        arguments: {
-          'name': tournamentNameController.text,
-          'type': tournamentType.value,
-          'format': matchFormat.value,
-        },
-      );
-    } else {
-      Get.snackbar(
-        'Error',
-        'Please enter a tournament name.',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+    String name = tournamentNameController.text.trim();
+    
+    if (name.isEmpty) {
+      // Set default name with current date, e.g., "Tournament Jan 28"
+      final dateStr = DateFormat('MMM d').format(DateTime.now());
+      name = 'Tournament $dateStr';
     }
+
+    Get.toNamed(
+      Routes.PLAYER_INPUT,
+      arguments: {
+        'name': name,
+        'type': tournamentType.value,
+        'format': matchFormat.value,
+      },
+    );
   }
 
   @override

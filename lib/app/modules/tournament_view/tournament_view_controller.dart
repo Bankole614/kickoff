@@ -42,10 +42,9 @@ class TournamentViewController extends GetxController {
   }
 
   void generateLeagueFixtures() {
-    for (var i = 0; i < teams.length; i++) {
-      for (var j = i + 1; j < teams.length; j++) {
-        matches.add(Match(homeTeam: teams[i], awayTeam: teams[j]));
-      }
+    // Initial fixture: Team 1 vs Team 2
+    if (teams.length >= 2) {
+      matches.add(Match(homeTeam: teams[0], awayTeam: teams[1]));
     }
     _saveTournamentState();
   }
@@ -156,6 +155,78 @@ class TournamentViewController extends GetxController {
           child: const Text('Save'),
         ),
       ],
+    );
+  }
+
+  void showAddMatchDialog() {
+    Rx<Team?> selectedHomeTeam = Rx<Team?>(null);
+    Rx<Team?> selectedAwayTeam = Rx<Team?>(null);
+
+    // Default to first two available teams if none selected
+    if (teams.isNotEmpty) selectedHomeTeam.value = teams[0];
+    if (teams.length > 1) selectedAwayTeam.value = teams[1];
+
+    Get.defaultDialog(
+      title: 'Schedule New Match',
+      content: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        child: Column(
+          children: [
+            Obx(() => DropdownButtonFormField<Team>(
+              value: selectedHomeTeam.value,
+              decoration: const InputDecoration(labelText: 'Home Team'),
+              items: teams.map((team) {
+                return DropdownMenuItem(
+                  value: team,
+                  child: Text(team.name.value),
+                );
+              }).toList(),
+              onChanged: (val) => selectedHomeTeam.value = val,
+            )),
+            const SizedBox(height: 16),
+            Obx(() => DropdownButtonFormField<Team>(
+              value: selectedAwayTeam.value,
+              decoration: const InputDecoration(labelText: 'Away Team'),
+              items: teams.map((team) {
+                return DropdownMenuItem(
+                  value: team,
+                  child: Text(team.name.value),
+                );
+              }).toList(),
+              onChanged: (val) => selectedAwayTeam.value = val,
+            )),
+          ],
+        ),
+      ),
+      confirm: ElevatedButton(
+        onPressed: () {
+          if (selectedHomeTeam.value != null && 
+              selectedAwayTeam.value != null && 
+              selectedHomeTeam.value != selectedAwayTeam.value) {
+            
+            matches.add(Match(
+              homeTeam: selectedHomeTeam.value!, 
+              awayTeam: selectedAwayTeam.value!
+            ));
+            _saveTournamentState();
+            Get.back();
+            Get.snackbar('Success', 'Match scheduled successfully', 
+              snackPosition: SnackPosition.BOTTOM,
+              backgroundColor: Colors.green,
+              colorText: Colors.white);
+          } else {
+            Get.snackbar('Error', 'Please select two different teams',
+              snackPosition: SnackPosition.BOTTOM,
+              backgroundColor: Colors.red,
+              colorText: Colors.white);
+          }
+        },
+        child: const Text('Schedule Match'),
+      ),
+      cancel: TextButton(
+        onPressed: () => Get.back(),
+        child: const Text('Cancel'),
+      ),
     );
   }
 }

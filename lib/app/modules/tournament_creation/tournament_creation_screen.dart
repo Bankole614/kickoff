@@ -13,7 +13,7 @@ class TournamentCreationScreen extends GetView<TournamentCreationController> {
       appBar: AppBar(
         title: const Text(
           'New Tournament',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: TextStyle(color: Colors.white, fontSize: 28),
         ),
         backgroundColor: AppColors.primary,
         elevation: 0,
