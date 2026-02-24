@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:kickoff/app/core/utils/app_colors.dart';
 import 'package:kickoff/app/data/models/match_model.dart';
 import 'package:kickoff/app/data/models/standing_model.dart';
 import 'package:kickoff/app/data/models/team_model.dart';
@@ -119,40 +120,131 @@ class TournamentViewController extends GetxController {
     final TextEditingController homeScoreController = TextEditingController();
     final TextEditingController awayScoreController = TextEditingController();
 
-    Get.defaultDialog(
-      title: 'Enter Score',
-      content: Column(
-        children: [
-          TextField(
-            controller: homeScoreController,
-            keyboardType: TextInputType.number,
-            decoration: InputDecoration(labelText: match.homeTeam.name.value),
+    Get.dialog(
+      Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Enter Match Result',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _buildTeamScoreInput(
+                    match.homeTeam,
+                    homeScoreController,
+                    true,
+                  ),
+                  const Text(
+                    'VS',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey,
+                    ),
+                  ),
+                  _buildTeamScoreInput(
+                    match.awayTeam,
+                    awayScoreController,
+                    false,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 30),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () => Get.back(),
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.grey,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                      child: const Text('Cancel'),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        if (homeScoreController.text.isNotEmpty &&
+                            awayScoreController.text.isNotEmpty) {
+                          match.homeScore = int.parse(homeScoreController.text);
+                          match.awayScore = int.parse(awayScoreController.text);
+                          match.completed = true;
+                          updateStandings(match);
+                          matches.refresh();
+                          Get.back();
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                      child: const Text('Save Result'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
-          TextField(
-            controller: awayScoreController,
-            keyboardType: TextInputType.number,
-            decoration: InputDecoration(labelText: match.awayTeam.name.value),
-          ),
-        ],
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Get.back(),
-          child: const Text('Cancel'),
         ),
-        TextButton(
-          onPressed: () {
-            if (homeScoreController.text.isNotEmpty &&
-                awayScoreController.text.isNotEmpty) {
-              match.homeScore = int.parse(homeScoreController.text);
-              match.awayScore = int.parse(awayScoreController.text);
-              match.completed = true;
-              updateStandings(match);
-              matches.refresh();
-              Get.back();
-            }
-          },
-          child: const Text('Save'),
+      ),
+    );
+  }
+
+  Widget _buildTeamScoreInput(Team team, TextEditingController controller, bool isHome) {
+    return Column(
+      children: [
+        CircleAvatar(
+          radius: 24,
+          backgroundColor: AppColors.primary.withOpacity(0.1),
+          child: Text(
+            team.name.value.isNotEmpty ? team.name.value[0].toUpperCase() : '?',
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: AppColors.primary,
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          team.name.value,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+          overflow: TextOverflow.ellipsis,
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          width: 60,
+          child: TextField(
+            controller: controller,
+            keyboardType: TextInputType.number,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+            ),
+            decoration: InputDecoration(
+              contentPadding: const EdgeInsets.symmetric(vertical: 8),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.grey[300]!),
+              ),
+              filled: true,
+              fillColor: Colors.grey[50],
+            ),
+          ),
         ),
       ],
     );
@@ -162,70 +254,121 @@ class TournamentViewController extends GetxController {
     Rx<Team?> selectedHomeTeam = Rx<Team?>(null);
     Rx<Team?> selectedAwayTeam = Rx<Team?>(null);
 
-    // Default to first two available teams if none selected
     if (teams.isNotEmpty) selectedHomeTeam.value = teams[0];
     if (teams.length > 1) selectedAwayTeam.value = teams[1];
 
-    Get.defaultDialog(
-      title: 'Schedule New Match',
-      content: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-        child: Column(
-          children: [
-            Obx(() => DropdownButtonFormField<Team>(
-              value: selectedHomeTeam.value,
-              decoration: const InputDecoration(labelText: 'Home Team'),
-              items: teams.map((team) {
-                return DropdownMenuItem(
-                  value: team,
-                  child: Text(team.name.value),
-                );
-              }).toList(),
-              onChanged: (val) => selectedHomeTeam.value = val,
-            )),
-            const SizedBox(height: 16),
-            Obx(() => DropdownButtonFormField<Team>(
-              value: selectedAwayTeam.value,
-              decoration: const InputDecoration(labelText: 'Away Team'),
-              items: teams.map((team) {
-                return DropdownMenuItem(
-                  value: team,
-                  child: Text(team.name.value),
-                );
-              }).toList(),
-              onChanged: (val) => selectedAwayTeam.value = val,
-            )),
-          ],
+    Get.dialog(
+      Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text(
+                'Schedule New Match',
+                style: TextStyle(
+                  fontSize: 20, 
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              Obx(() => DropdownButtonFormField<Team>(
+                value: selectedHomeTeam.value,
+                decoration: InputDecoration(
+                  labelText: 'Home Team',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  prefixIcon: const Icon(Icons.home_outlined),
+                ),
+                items: teams.map((team) {
+                  return DropdownMenuItem(
+                    value: team,
+                    child: Text(team.name.value),
+                  );
+                }).toList(),
+                onChanged: (val) => selectedHomeTeam.value = val,
+              )),
+              const SizedBox(height: 16),
+              const Center(
+                child: CircleAvatar(
+                  radius: 16,
+                  backgroundColor: AppColors.background,
+                  child: Text(
+                    'VS',
+                    style: TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Obx(() => DropdownButtonFormField<Team>(
+                value: selectedAwayTeam.value,
+                decoration: InputDecoration(
+                  labelText: 'Away Team',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  prefixIcon: const Icon(Icons.flight_outlined),
+                ),
+                items: teams.map((team) {
+                  return DropdownMenuItem(
+                    value: team,
+                    child: Text(team.name.value),
+                  );
+                }).toList(),
+                onChanged: (val) => selectedAwayTeam.value = val,
+              )),
+              const SizedBox(height: 30),
+              ElevatedButton(
+                onPressed: () {
+                  if (selectedHomeTeam.value != null && 
+                      selectedAwayTeam.value != null && 
+                      selectedHomeTeam.value != selectedAwayTeam.value) {
+                    
+                    matches.add(Match(
+                      homeTeam: selectedHomeTeam.value!, 
+                      awayTeam: selectedAwayTeam.value!
+                    ));
+                    _saveTournamentState();
+                    Get.back();
+                    Get.snackbar('Success', 'Match scheduled successfully', 
+                      snackPosition: SnackPosition.BOTTOM,
+                      backgroundColor: Colors.green,
+                      colorText: Colors.white);
+                  } else {
+                    Get.snackbar('Error', 'Please select two different teams',
+                      snackPosition: SnackPosition.BOTTOM,
+                      backgroundColor: Colors.red,
+                      colorText: Colors.white);
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const Text(
+                  'Schedule Match',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+              TextButton(
+                onPressed: () => Get.back(),
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.grey,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+                child: const Text('Cancel'),
+              ),
+            ],
+          ),
         ),
-      ),
-      confirm: ElevatedButton(
-        onPressed: () {
-          if (selectedHomeTeam.value != null && 
-              selectedAwayTeam.value != null && 
-              selectedHomeTeam.value != selectedAwayTeam.value) {
-            
-            matches.add(Match(
-              homeTeam: selectedHomeTeam.value!, 
-              awayTeam: selectedAwayTeam.value!
-            ));
-            _saveTournamentState();
-            Get.back();
-            Get.snackbar('Success', 'Match scheduled successfully', 
-              snackPosition: SnackPosition.BOTTOM,
-              backgroundColor: Colors.green,
-              colorText: Colors.white);
-          } else {
-            Get.snackbar('Error', 'Please select two different teams',
-              snackPosition: SnackPosition.BOTTOM,
-              backgroundColor: Colors.red,
-              colorText: Colors.white);
-          }
-        },
-        child: const Text('Schedule Match'),
-      ),
-      cancel: TextButton(
-        onPressed: () => Get.back(),
-        child: const Text('Cancel'),
       ),
     );
   }

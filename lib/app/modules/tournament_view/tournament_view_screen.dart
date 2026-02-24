@@ -4,20 +4,21 @@ import 'package:kickoff/app/core/utils/app_colors.dart';
 import 'package:kickoff/app/modules/tournament_view/tournament_view_controller.dart';
 import 'package:kickoff/app/modules/tournament_view/widgets/league_table.dart';
 import 'package:kickoff/app/modules/tournament_view/widgets/match_list.dart';
+import 'package:kickoff/app/modules/tournament_view/widgets/team_list.dart';
 
 class TournamentViewScreen extends GetView<TournamentViewController> {
-  const TournamentViewScreen({Key? key}) : super(key: key);
+  const TournamentViewScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 2,
+      length: 3,
       child: Scaffold(
         backgroundColor: AppColors.background,
         appBar: AppBar(
           title: Text(
             controller.tournamentName,
-            style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+            style: const TextStyle( color: Colors.white),
           ),
           backgroundColor: AppColors.primary,
           elevation: 0,
@@ -39,6 +40,7 @@ class TournamentViewScreen extends GetView<TournamentViewController> {
             tabs: const [
               Tab(text: 'Standings'),
               Tab(text: 'Matches'),
+              Tab(text: 'Teams'),
             ],
           ),
         ),
@@ -52,6 +54,7 @@ class TournamentViewScreen extends GetView<TournamentViewController> {
               const MatchList()
             else
               _buildComingSoon('Matches'),
+            const TeamList(),
           ],
         ),
       ),

@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:kickoff/app/data/models/tournament_model.dart';
@@ -35,5 +36,11 @@ class StorageService extends GetxService {
     List<dynamic> storedTournaments = _box.read('tournaments') ?? [];
     storedTournaments.removeWhere((t) => t['id'] == id);
     _box.write('tournaments', storedTournaments);
+  }
+
+  void listenToTournaments(VoidCallback callback) {
+    _box.listenKey('tournaments', (value) {
+      callback();
+    });
   }
 }

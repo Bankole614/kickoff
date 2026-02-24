@@ -11,25 +11,20 @@ class HomeController extends GetxController {
   void onInit() {
     super.onInit();
     loadTournaments();
+    _storageService.listenToTournaments(loadTournaments);
   }
 
   void loadTournaments() {
+    // getTournaments returns a new list, so assignAll updates the observable correctly
     tournaments.assignAll(_storageService.getTournaments());
   }
 
   void deleteTournament(String id) {
     _storageService.deleteTournament(id);
-    loadTournaments();
+    // loadTournaments will be called automatically by the listener
   }
 
   void openTournament(Tournament tournament) {
     Get.toNamed(Routes.TOURNAMENT_VIEW, arguments: tournament);
-  }
-  
-  // Refresh the list when returning to this screen
-  @override
-  void onReady() {
-    super.onReady();
-    loadTournaments();
   }
 }

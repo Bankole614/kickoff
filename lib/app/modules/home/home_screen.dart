@@ -6,7 +6,7 @@ import 'package:kickoff/app/modules/home/home_controller.dart';
 import 'package:kickoff/app/routes/app_pages.dart';
 
 class HomeScreen extends GetView<HomeController> {
-  const HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -57,12 +57,33 @@ class HomeScreen extends GetView<HomeController> {
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
                       final tournament = controller.tournaments[index];
-                      return _buildTournamentCard(tournament);
+                      return _buildTournamentCard(context, tournament);
                     },
                     childCount: controller.tournaments.length,
                   ),
                 );
               }
+            }),
+          ),
+          // Add hint at the bottom
+          SliverToBoxAdapter(
+            child: Obx(() {
+              if (controller.tournaments.isNotEmpty) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 80.0),
+                  child: Center(
+                    child: Text(
+                      'Swipe left on a card to delete',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey[400],
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ),
+                );
+              }
+              return const SizedBox.shrink();
             }),
           ),
         ],
@@ -127,7 +148,7 @@ class HomeScreen extends GetView<HomeController> {
     );
   }
 
-  Widget _buildTournamentCard(dynamic tournament) {
+  Widget _buildTournamentCard(BuildContext context, dynamic tournament) {
     return Dismissible(
       key: Key(tournament.id),
       direction: DismissDirection.endToStart,
@@ -141,6 +162,27 @@ class HomeScreen extends GetView<HomeController> {
         padding: const EdgeInsets.only(right: 24),
         child: const Icon(Icons.delete_outline, color: Colors.white, size: 28),
       ),
+      confirmDismiss: (direction) async {
+        return await showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text("Confirm Delete"),
+              content: const Text("Are you sure you want to delete this tournament? This action cannot be undone."),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: const Text("Cancel"),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  child: const Text("Delete", style: TextStyle(color: Colors.red)),
+                ),
+              ],
+            );
+          },
+        );
+      },
       onDismissed: (_) => controller.deleteTournament(tournament.id),
       child: GestureDetector(
         onTap: () => controller.openTournament(tournament),
@@ -163,38 +205,44 @@ class HomeScreen extends GetView<HomeController> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
-                      child: Text(
-                        tournament.name,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.text,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            tournament.name,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.text,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            DateFormat.yMMMd().format(tournament.createdDate),
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     _buildStatusBadge(tournament),
                   ],
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
                 Row(
                   children: [
                     _buildInfoChip(Icons.emoji_events_outlined, tournament.type),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 16),
                     _buildInfoChip(Icons.people_outline, tournament.format),
                     const Spacer(),
-                    Text(
-                      DateFormat.MMMd().format(tournament.createdDate),
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: AppColors.textSecondary,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
+                    const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
                   ],
                 ),
               ],
@@ -231,12 +279,13 @@ class HomeScreen extends GetView<HomeController> {
     return Row(
       children: [
         Icon(icon, size: 16, color: AppColors.textSecondary),
-        const SizedBox(width: 4),
+        const SizedBox(width: 6),
         Text(
           label,
           style: const TextStyle(
             fontSize: 13,
             color: AppColors.textSecondary,
+            fontWeight: FontWeight.w500,
           ),
         ),
       ],

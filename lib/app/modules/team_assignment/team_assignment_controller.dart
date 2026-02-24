@@ -85,6 +85,9 @@ class TeamAssignmentController extends GetxController {
 
     _storageService.saveTournament(tournament);
 
+    // Clear navigation stack to prevent going back to creation screens
+    Get.offAllNamed(Routes.HOME);
+    // Navigate to the new tournament view
     Get.toNamed(Routes.TOURNAMENT_VIEW, arguments: tournament);
   }
 }
